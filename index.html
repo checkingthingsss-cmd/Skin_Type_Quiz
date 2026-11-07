@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>What’s Your Skin Type? Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#E9DFFB;--card:#FBF8FF;--ink:#2B1B4A;--mute:#6B5B8C;--accent:#7A4DD8;--accent-d:#5B33B3;--line:#D3C3F2}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'DM Sans',system-ui,sans-serif;line-height:1.55;min-height:100vh}
+main{max-width:640px;margin:0 auto;padding:28px 18px 48px}
+h1,h2,h3{font-family:'Bricolage Grotesque','DM Sans',sans-serif;line-height:1.15;margin:0}
+.card{background:var(--card);border-radius:22px;padding:26px 22px;box-shadow:0 10px 30px rgba(91,51,179,.12)}
+.hero h1{font-size:clamp(30px,7vw,42px);margin-bottom:12px}
+.hero p{color:var(--mute);margin:0 0 22px}
+button{font:inherit;cursor:pointer}
+.btn{background:var(--accent);color:#fff;border:0;border-radius:999px;padding:13px 26px;font-weight:700;font-size:16px}
+.btn:hover{background:var(--accent-d)}
+.btn.ghost{background:transparent;color:var(--accent-d);border:2px solid var(--line)}
+button:focus-visible{outline:3px solid var(--accent-d);outline-offset:2px}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:8px}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+.count{color:var(--mute);font-size:14px;margin-bottom:18px}
+.q{font-size:clamp(22px,5vw,28px);margin-bottom:18px}
+.opt{display:block;width:100%;text-align:left;background:#fff;border:2px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;color:var(--ink);font-size:16px;transition:border-color .15s,background .15s}
+.opt:hover{border-color:var(--accent);background:#F4EEFF}
+.opt b{display:inline-block;width:26px;color:var(--accent-d)}
+.nav{margin-top:8px}
+.hidden{display:none}
+.res-top{text-align:center}
+.res-top svg{width:170px;height:170px;margin:0 auto 6px;display:block}
+.res-top p{color:var(--mute)}
+.res-top h2{font-size:clamp(28px,7vw,38px)}
+.badge{display:inline-block;background:#F6D7DE;color:#9B2C48;border-radius:99px;padding:4px 14px;font-size:14px;font-weight:700;margin:10px 0 0}
+.sect{margin-top:22px}
+.sect h3{font-size:20px;margin-bottom:10px}
+.sect ul{margin:0;padding-left:20px}
+.sect li{margin-bottom:7px}
+.note{font-size:13px;color:var(--mute);margin-top:22px}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.scores{display:grid;grid-template-columns:90px 1fr;gap:6px 10px;align-items:center;font-size:14px;margin-top:6px}
+.scores span.t{height:10px;background:var(--line);border-radius:99px;overflow:hidden}
+.scores span.t i{display:block;height:100%;background:var(--accent)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+<section id="intro" class="card hero">
+  <h1>What’s your skin type?</h1>
+  <p>Answer 8 quick questions about how your skin looks and feels. You’ll get your skin type, care tips, and ingredients that suit you. It takes about a minute.</p>
+  <button class="btn" id="start">Start the quiz</button>
+</section>
+
+<section id="quiz" class="card hidden">
+  <div class="bar"><i id="fill"></i></div>
+  <div class="count" id="count"></div>
+  <h2 class="q" id="qtext"></h2>
+  <div id="opts"></div>
+  <div class="nav"><button class="btn ghost" id="back">Back</button></div>
+</section>
+
+<section id="result" class="card hidden"></section>
+</main>
+
+<script>
+var Q=[
+{q:"How does your skin feel after washing your face with a cleanser?",o:[["Tight, dry, or uncomfortable","dry"],["Comfortable and balanced","normal"],["Oily, especially in the T-zone","oily"],["Red, itchy, or irritated","","2"]]},
+{q:"How does your skin look a few hours after cleansing?",o:[["Dry or flaky","dry"],["Normal and balanced","normal"],["Shiny all over my face","oily"],["Shiny on my forehead and nose, but dry on my cheeks","combo"]]},
+{q:"How would you describe your pores?",o:[["Small and barely visible","dry"],["Small to medium-sized","normal"],["Large and clearly visible","oily"],["Different sizes in different areas","combo"]]},
+{q:"How often does your skin feel tight or rough?",o:[["Very often","dry"],["Rarely","normal"],["Almost never","oily"],["Sometimes, especially on my cheeks","combo"]]},
+{q:"How does your skin react to new skincare products?",o:[["Usually fine, but may feel dry","dry"],["No significant reaction","normal"],["Usually fine, but I may get clogged pores","oily"],["Often redness, burning, itching, or irritation","","2"]]},
+{q:"How would you describe your skin throughout the day?",o:[["Dry and sometimes flaky","dry"],["Comfortable without excessive shine","normal"],["Oily and shiny most of the day","oily"],["Oily in some areas and dry in others","combo"]]},
+{q:"Do you experience redness, itching, or stinging easily?",o:[["Rarely","","0"],["Almost never","","0"],["Sometimes, especially with heavy products","","1"],["Frequently, even with gentle products","","2"]]},
+{q:"What happens when you apply moisturizer?",o:[["My skin absorbs it quickly and still feels dry","dry"],["My skin feels comfortable and hydrated","normal"],["My skin may feel greasy or look shiny","oily"],["Some areas feel hydrated while others remain oily or dry","combo"]]}
+];
+var T={
+dry:{name:"Dry Skin",desc:"Your skin produces less oil than it needs, so it often feels tight and can look flaky or dull.",
+tips:["Use a creamy, fragrance-free cleanser instead of foaming ones.","Apply moisturizer on damp skin to lock in water.","Use lukewarm water; hot water strips natural oils.","Add a gentle hydrating serum morning and night.","Wear sunscreen every day; dry skin burns and ages faster."],
+ing:"Hyaluronic acid, ceramides, glycerin, squalane, shea butter"},
+oily:{name:"Oily Skin",desc:"Your skin makes extra sebum, which gives shine and larger-looking pores and can lead to clogged pores.",
+tips:["Cleanse twice a day with a gentle gel cleanser.","Choose a light, oil-free gel moisturizer; skipping it can make oil worse.","Use a BHA (salicylic acid) a few times a week for clogged pores.","Pick non-comedogenic or “oil-free” sunscreen and makeup.","Don’t over-scrub; harsh products can trigger even more oil."],
+ing:"Salicylic acid, niacinamide, zinc, clay, retinoids (introduce slowly)"},
+combo:{name:"Combination Skin",desc:"Your T-zone (forehead, nose, chin) tends to be oily while your cheeks are normal or dry.",
+tips:["Use a gentle, balanced cleanser for the whole face.","Layer products: a light gel on the T-zone, a richer cream on dry cheeks.","Use a BHA only on the T-zone, not on dry areas.","Choose a lightweight, hydrating sunscreen for daily use.","Clay mask on the T-zone once a week, hydrating mask on the cheeks."],
+ing:"Niacinamide, hyaluronic acid, light gel moisturizers, mild BHA on the T-zone"},
+normal:{name:"Normal Skin",desc:"Your skin is well balanced: not too oily, not too dry, with few problems and small pores.",
+tips:["Keep it simple: gentle cleanser, moisturizer, sunscreen.","Use sunscreen SPF 30+ daily to protect your balance long-term.","Add an antioxidant serum (vitamin C) in the morning.","Exfoliate gently 1–2 times a week.","Drink water and sleep well; your skin shows it."],
+ing:"Vitamin C, hyaluronic acid, peptides, light moisturizers"}
+};
+var SENS=["Choose fragrance-free and alcohol-free products.","Introduce one new product at a time and patch-test on your jawline first.","Avoid strong scrubs, hot water, and many actives at once.","Look for soothing ingredients: centella (cica), panthenol, oat, aloe, ceramides.","If redness, burning, or itching keeps coming back, see a dermatologist."];
+
+function face(type,sens){
+ var base='<circle cx="100" cy="100" r="78" fill="#FFE3D1"/><circle cx="76" cy="90" r="5" fill="#2B1B4A"/><circle cx="124" cy="90" r="5" fill="#2B1B4A"/><path d="M80 124q20 16 40 0" stroke="#2B1B4A" stroke-width="4" fill="none" stroke-linecap="round"/>';
+ var x='';
+ if(type==="dry")x='<g stroke="#B98B6E" stroke-width="3" stroke-linecap="round"><path d="M56 112l10 4M60 124l9 2M134 112l10-4M131 124l9-2M92 58l8 6M110 62l8-4"/></g><circle cx="62" cy="108" r="14" fill="#F2C4A8" opacity=".6"/><circle cx="138" cy="108" r="14" fill="#F2C4A8" opacity=".6"/>';
+ if(type==="oily")x='<g fill="#fff" opacity=".85"><ellipse cx="78" cy="58" rx="16" ry="6" transform="rotate(-15 78 58)"/><ellipse cx="100" cy="106" rx="6" ry="12"/><ellipse cx="62" cy="112" rx="8" ry="5"/><ellipse cx="140" cy="110" rx="8" ry="5"/></g><g fill="#D9A58A"><circle cx="90" cy="112" r="2"/><circle cx="110" cy="114" r="2"/><circle cx="100" cy="120" r="2"/></g>';
+ if(type==="combo")x='<path d="M72 40h56v26q-10 10-8 40h-40q2-30-8-40z" fill="#fff" opacity=".6"/><circle cx="58" cy="112" r="14" fill="#F2C4A8" opacity=".7"/><circle cx="142" cy="112" r="14" fill="#F2C4A8" opacity=".7"/>';
+ if(type==="normal")x='<circle cx="62" cy="108" r="12" fill="#FFB9A5" opacity=".55"/><circle cx="138" cy="108" r="12" fill="#FFB9A5" opacity=".55"/><g fill="#F4C84B"><path d="M30 40l4 9 9 4-9 4-4 9-4-9-9-4 9-4z"/><path d="M170 150l3 6 6 3-6 3-3 6-3-6-6-3 6-3z"/></g>';
+ var s='';
+ if(sens)s='<circle cx="62" cy="108" r="14" fill="#E8556F" opacity=".5"/><circle cx="138" cy="108" r="14" fill="#E8556F" opacity=".5"/><circle cx="100" cy="102" r="8" fill="#E8556F" opacity=".45"/>';
+ return '<svg viewBox="0 0 200 200" role="img" aria-label="Illustration of '+T[type].name+'">'+base+x+s+'</svg>';
+}
+var i=0,ans=[];
+var $=function(id){return document.getElementById(id)};
+function show(id){["intro","quiz","result"].forEach(function(s){$(s).classList.toggle("hidden",s!==id)});window.scrollTo(0,0)}
+function render(){
+ var q=Q[i];$("qtext").textContent=q.q;$("count").textContent="Question "+(i+1)+" of "+Q.length;
+ $("fill").style.width=(i/Q.length*100)+"%";$("back").style.visibility=i?"visible":"hidden";
+ var h="";q.o.forEach(function(o,k){h+='<button class="opt" data-k="'+k+'"><b>'+"ABCD"[k]+'.</b>'+o[0]+'</button>'});
+ $("opts").innerHTML=h;
+}
+$("start").onclick=function(){i=0;ans=[];show("quiz");render()};
+$("back").onclick=function(){if(i>0){i--;ans.pop();render()}};
+$("opts").onclick=function(e){
+ var b=e.target.closest(".opt");if(!b)return;
+ ans.push(Q[i].o[+b.dataset.k]);i++;
+ if(i<Q.length)render();else finish();
+};
+function finish(){
+ var c={dry:0,oily:0,combo:0,normal:0},s=0;
+ ans.forEach(function(a){if(a[1])c[a[1]]++;if(a[2])s+=+a[2]});
+ var max=Math.max(c.dry,c.oily,c.combo,c.normal);
+ var top=Object.keys(c).filter(function(k){return c[k]===max});
+ var type;
+ if(top.length===1)type=top[0];
+ else if(top.indexOf("combo")>-1||(top.indexOf("oily")>-1&&top.indexOf("dry")>-1))type="combo";
+ else type=top[0];
+ var sens=s>=3;
+ var t=T[type],tot=8;
+ var h='<div class="res-top">'+face(type,sens)+'<p>Your skin type is</p><h2>'+t.name+'</h2>'+(sens?'<span class="badge">+ Sensitive</span>':'')+'<p>'+t.desc+(sens?' You also show signs of sensitivity, so your skin reacts easily to products.':'')+'</p></div>';
+ h+='<div class="sect"><h3>Care tips for you</h3><ul>'+t.tips.map(function(x){return'<li>'+x+'</li>'}).join('')+'</ul></div>';
+ h+='<div class="sect"><h3>Ingredients to look for</h3><p style="margin:0">'+t.ing+'</p></div>';
+ if(sens)h+='<div class="sect"><h3>Extra care for sensitive skin</h3><ul>'+SENS.map(function(x){return'<li>'+x+'</li>'}).join('')+'</ul></div>';
+ var names={dry:"Dry",oily:"Oily",combo:"Combination",normal:"Normal"};
+ h+='<div class="sect"><h3>Your answer pattern</h3><div class="scores">'+Object.keys(c).map(function(k){return'<span>'+names[k]+'</span><span class="t"><i style="width:'+(c[k]/tot*100)+'%"></i></span>'}).join('')+'</div></div>';
+ h+='<div class="row"><button class="btn" id="again">Retake the quiz</button><button class="btn ghost" id="share">Copy quiz link</button></div>';
+ h+='<p class="note">This quiz gives a general estimate, not a medical diagnosis. For persistent redness, itching, or severe acne, please see a dermatologist.</p>';
+ $("result").innerHTML=h;show("result");
+ $("again").onclick=function(){i=0;ans=[];show("quiz");render()};
+ $("share").onclick=function(){
+  var u=location.href.split("#")[0],b=$("share");
+  try{navigator.clipboard.writeText(u).then(function(){b.textContent="Link copied"},function(){b.textContent="Copy failed"})}catch(e){b.textContent="Copy failed"}
+ };
+}
+</script>
+</body>
+</html>
